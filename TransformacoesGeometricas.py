@@ -241,9 +241,11 @@ def AtualizaJogo():
 def AtualizaPersonagens(tempoDecorrido):
     global nInstancias
     for i in range (0, nInstancias):
-       Personagens[i].AtualizaPosicao(tempoDecorrido) #(tempoDecorrido)
-       if len(Projeteis) > 0:
-          Projeteis[0].AtualizaPosicao(tempoDecorrido) #(tempoDecorrido)
+        Personagens[i].AtualizaPosicao(tempoDecorrido) #(tempoDecorrido)
+    
+    for index, projetil in enumerate(Projeteis):
+        print(index)
+        projetil.AtualizaPosicao(tempoDecorrido) #(tempoDecorrido)
             
     AtualizaJogo()
 
@@ -251,9 +253,10 @@ def AtualizaPersonagens(tempoDecorrido):
 def DesenhaPersonagens():
     global PersonagemAtual, nInstancias
     
-    if len(Projeteis) > 0:
-        PersonagemAtual = 1
-        Projeteis[0].Desenha()
+    PersonagemAtual = 1
+    
+    for projetil in Projeteis:
+        projetil.Desenha()
     
     for i in range (0, nInstancias):
         PersonagemAtual = i
@@ -298,32 +301,26 @@ def keyboard(*args):
     if args[0] == b'q':
         os._exit(0)
     if args[0] == b' ':
-        Projeteis.append(Instancia())
-        
-        pos = copy.deepcopy(Personagens[0].Pivot)
-        
+        projetil = Instancia()
         
         Personagens[0].Centro = (Personagens[0].Envelope[1] + Personagens[0].Envelope[2]) * 0.5
 
         # Personagens[1].Posicao = Ponto((Personagens[0].Centro.x - Personagens[1].Centro.x), Personagens[0].Centro.y)
-        
-        print("centro p0")
-        Personagens[0].Centro.imprime()
     
-        Projeteis[0].Escala = Ponto(0.5, 0.5)
+        projetil.Escala = Ponto(0.5, 0.5)
         
-        Projeteis[0].Centro = (Personagens[1].Envelope[1] + Personagens[1].Envelope[2]) * 0.5
+        projetil.Centro = (Personagens[1].Envelope[1] + Personagens[1].Envelope[2]) * 0.5
         
-        print("centro projetil0")
-        Projeteis[0].Centro.imprime()
-        Projeteis[0].Posicao = Ponto((Personagens[0].Centro.x - Projeteis[0].Centro.x), Personagens[0].Centro.y) 
-        Projeteis[0].Rotacao = Personagens[0].Rotacao
-        Projeteis[0].IdDoModelo = 1
-        Projeteis[0].Modelo = DesenhaPersonagemMatricial
-        Projeteis[0].Pivot = Ponto(0.25, 0)
-        Projeteis[0].Direcao = copy.deepcopy(Personagens[0].Direcao)
-        # Projeteis[0].Direcao.rotacionaX(Personagens[0].Rotacao) # direcao alterada para a direita
-        Projeteis[0].Velocidade = 1   # move-se a 3 m/s
+        projetil.Posicao = Ponto((Personagens[0].Centro.x - (projetil.Centro.x * 0.75)), Personagens[0].Centro.y) 
+        projetil.Rotacao = Personagens[0].Rotacao
+        projetil.IdDoModelo = 1
+        projetil.Modelo = DesenhaPersonagemMatricial
+        projetil.Pivot = Ponto(0.25, 0)
+        projetil.Direcao = copy.deepcopy(Personagens[0].Direcao)
+        projetil.Velocidade = 30 + Personagens[0].Velocidade
+        
+        Projeteis.append(projetil)
+        
     if args[0] == ESCAPE:
         os._exit(0)
     if args[0] == b'e':
@@ -336,9 +333,11 @@ def keyboard(*args):
 # **********************************************************************
 def arrow_keys(a_keys: int, x: int, y: int):
     if a_keys == GLUT_KEY_UP:         # Se pressionar UP
-        Personagens[0].Velocidade = Personagens[0].Velocidade + 1
+        if (Personagens[0].Velocidade + 1) < 15:
+            Personagens[0].Velocidade = Personagens[0].Velocidade + 1
     if a_keys == GLUT_KEY_DOWN:       # Se pressionar DOWN
-        Personagens[0].Velocidade = Personagens[0].Velocidade - 1 
+        if (Personagens[0].Velocidade - 1) > -15:
+            Personagens[0].Velocidade = Personagens[0].Velocidade - 1 
     if a_keys == GLUT_KEY_LEFT:       # Se pressionar LEFT
         Personagens[0].Rotacao += 5
         Personagens[0].Direcao.rotacionaZ(+5)
@@ -501,7 +500,6 @@ def CriaInstancias():
 def CalculaPivot(nroModelo):
     global Modelos
     MM = Modelos[nroModelo]
-    print("pivot", MM.nColunas/2.0)
     return Ponto (MM.nColunas/2.0, 0) # pode ter um bug aqui pq nao mexi na escala
     
 # ***********************************************************************************
