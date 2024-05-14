@@ -144,14 +144,12 @@ def TestaColisao(P1, P2) -> bool :
                 return True
     return False
 
-
 # ***********************************************************************************
 def AtualizaEnvelope(i):
     global Personagens
     id = Personagens[i].IdDoModelo
     escala_x = Personagens[i].Escala.x
     escala_y = Personagens[i].Escala.y
-    
     MM = Modelos[id]
 
     P = Personagens[i]
@@ -212,8 +210,6 @@ def AtualizaJogo():
             print("Envelope ", i)
             Personagens[i].ImprimeEnvelope("","")
     imprimeEnvelope = False
-    
-    
 
     # Feito o calculo, eh preciso testar todos os tiros e
     # demais personagens contra o jogador
@@ -246,11 +242,18 @@ def AtualizaPersonagens(tempoDecorrido):
     global nInstancias
     for i in range (0, nInstancias):
        Personagens[i].AtualizaPosicao(tempoDecorrido) #(tempoDecorrido)
+       if len(Projeteis) > 0:
+          Projeteis[0].AtualizaPosicao(tempoDecorrido) #(tempoDecorrido)
+            
     AtualizaJogo()
 
 # ***********************************************************************************
 def DesenhaPersonagens():
     global PersonagemAtual, nInstancias
+    
+    if len(Projeteis) > 0:
+        PersonagemAtual = 1
+        Projeteis[0].Desenha()
     
     for i in range (0, nInstancias):
         PersonagemAtual = i
@@ -294,18 +297,35 @@ def keyboard(*args):
     # If escape is pressed, kill everything.
     if args[0] == b'q':
         os._exit(0)
-    if args[0] == ESCAPE:
-        Projeteis.append(ModeloMatricial())
+    if args[0] == b' ':
+        Projeteis.append(Instancia())
         
-        Projeteis[0].Posicao = Personagens[0].Posicao
-        Projeteis[0].Escala = Ponto (1,1)
-        Projeteis[0].Rotacao = Personagens[0].Posicao
+        pos = copy.deepcopy(Personagens[0].Pivot)
+        
+        
+        Personagens[0].Centro = (Personagens[0].Envelope[1] + Personagens[0].Envelope[2]) * 0.5
+
+        # Personagens[1].Posicao = Ponto((Personagens[0].Centro.x - Personagens[1].Centro.x), Personagens[0].Centro.y)
+        
+        print("centro p0")
+        Personagens[0].Centro.imprime()
+    
+        Projeteis[0].Escala = Ponto(0.5, 0.5)
+        
+        Projeteis[0].Centro = (Personagens[1].Envelope[1] + Personagens[1].Envelope[2]) * 0.5
+        
+        print("centro projetil0")
+        Projeteis[0].Centro.imprime()
+        Projeteis[0].Posicao = Ponto((Personagens[0].Centro.x - Projeteis[0].Centro.x), Personagens[0].Centro.y) 
+        Projeteis[0].Rotacao = Personagens[0].Rotacao
         Projeteis[0].IdDoModelo = 1
         Projeteis[0].Modelo = DesenhaPersonagemMatricial
-        Projeteis[0].Pivot = CalculaPivot(Projeteis[0].IdDoModelo)
-        Projeteis[0].Direcao = Personagens[0].Direcao
-        Projeteis[0].Direcao.rotacionaZ(Personagens[0].Rotacao) # direcao alterada para a direita
-        Projeteis[0].Velocidade = 2   # move-se a 3 m/s
+        Projeteis[0].Pivot = Ponto(0.25, 0)
+        Projeteis[0].Direcao = copy.deepcopy(Personagens[0].Direcao)
+        # Projeteis[0].Direcao.rotacionaX(Personagens[0].Rotacao) # direcao alterada para a direita
+        Projeteis[0].Velocidade = 1   # move-se a 3 m/s
+    if args[0] == ESCAPE:
+        os._exit(0)
     if args[0] == b'e':
         imprimeEnvelope = True
 # Forca o redesenho da tela
@@ -427,10 +447,10 @@ def CriaInstancias():
     global Personagens, nInstancias
 
     i = 0
-    ang = -90.0
+    ang = 0
     #Personagens.append(Instancia())
-    Personagens[i].Posicao = Ponto (-2.5,0)
-    Personagens[i].Escala = Ponto (0.25,0.25)
+    Personagens[i].Posicao = Ponto (0,0)
+    Personagens[i].Escala = Ponto (0.25, 0.25)
     Personagens[i].Rotacao = ang
     Personagens[i].IdDoModelo = 0
     Personagens[i].Modelo = DesenhaPersonagemMatricial
@@ -444,19 +464,17 @@ def CriaInstancias():
 
     Personagens[0].ImprimeEnvelope("Envelope:")
 
-    
     ## Projetil
     i = i + 1
-    ang = 90
-    Personagens[i].Posicao = Ponto (13.5,0)
-    Personagens[i].Escala = Ponto (1,1)
+    ang = 0
+    Personagens[i].Escala = Ponto (0.5, 0.5)
     Personagens[i].Rotacao = ang
     Personagens[i].IdDoModelo = i
     Personagens[i].Modelo = DesenhaPersonagemMatricial
     Personagens[i].Pivot = CalculaPivot(Personagens[i].IdDoModelo)
     Personagens[i].Direcao = Ponto(0,1) # direcao do movimento para a cima
     Personagens[i].Direcao.rotacionaZ(ang) # direcao alterada para a direita
-    Personagens[i].Velocidade = 1   # move-se a 3 m/s
+    Personagens[i].Velocidade = 0   # move-se a 3 m/s
 
     # Salva os dados iniciais do personagem i na area de backup
     Personagens[i+AREA_DE_BACKUP] = copy.deepcopy(Personagens[i]) 
@@ -469,7 +487,7 @@ def CriaInstancias():
     Personagens[i].Posicao = Ponto (13.5,0)
     Personagens[i].Escala = Ponto (1,1)
     Personagens[i].Rotacao = ang
-    Personagens[i].IdDoModelo = i
+    Personagens[i].IdDoModelo = 2
     Personagens[i].Modelo = DesenhaPersonagemMatricial
     Personagens[i].Pivot = CalculaPivot(Personagens[i].IdDoModelo)
     Personagens[i].Direcao = Ponto(0,1) # direcao do movimento para a cima
@@ -483,6 +501,7 @@ def CriaInstancias():
 def CalculaPivot(nroModelo):
     global Modelos
     MM = Modelos[nroModelo]
+    print("pivot", MM.nColunas/2.0)
     return Ponto (MM.nColunas/2.0, 0) # pode ter um bug aqui pq nao mexi na escala
     
 # ***********************************************************************************
@@ -518,7 +537,7 @@ glutInitDisplayMode(GLUT_RGBA)
 # Define o tamanho inicial da janela grafica do programa
 glutInitWindowSize(800, 800)
 glutInitWindowPosition(100, 100)
-wind = glutCreateWindow("Space Invaders")
+wind = glutCreateWindow("Asteroids")
 glutDisplayFunc(display)
 glutIdleFunc(animate)
 glutReshapeFunc(reshape)

@@ -22,8 +22,9 @@ class Instancia:
         self.Rotacao:float = 0.0
         self.Modelo = None
         self.t = 0.0
+        self.Centro = Ponto(0,0,0)
 
-        self.IdDoModelo = 0;
+        self.IdDoModelo = 0
         self.Pivot = Ponto (0,0,0) 
         self.Velocidade:float = 0.0
         self.Envelope = []
