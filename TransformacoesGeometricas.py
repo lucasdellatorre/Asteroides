@@ -145,21 +145,19 @@ def TestaColisao(P1, P2) -> bool :
 def AtualizaEnvelope(i):
     global Personagens
     id = Personagens[i].IdDoModelo
-    escala_x = Personagens[i].Escala.x
-    escala_y = Personagens[i].Escala.y
     MM = Modelos[id]
 
     P = Personagens[i]
-    V = P.Direcao * ((MM.nColunas/2.0) * escala_y)
+    V = P.Direcao * (MM.nColunas/2.0)
     V.rotacionaZ(90)
     A = P.PosicaoDoPersonagem + V
-    B = A + P.Direcao* (MM.nLinhas * escala_x)
+    B = A + P.Direcao* MM.nLinhas
     
-    V = P.Direcao * (MM.nColunas * escala_y)
+    V = P.Direcao * MM.nColunas
     V.rotacionaZ(-90)
     C = B + V
 
-    V = P.Direcao * -1 * (MM.nLinhas * escala_x)
+    V = P.Direcao * -1 * MM.nLinhas
     D = C + V
 
     # Desenha o envelope
@@ -310,9 +308,9 @@ def atirar(personagem_index):
     projetil = Personagens[nInstancias]
     
     personagem.Centro = ((personagem.Envelope[1] + personagem.Envelope[2]) * 0.5)
-    projetil.Escala = Ponto(0.5, 0.5)
+    projetil.Escala = Ponto(1,1)
     projetil.Direcao = copy.deepcopy(personagem.Direcao) 
-    projetil.Posicao = personagem.Centro + personagem.Direcao * 0.5
+    projetil.Posicao = personagem.Centro + personagem.Direcao * 0.8
     projetil.Rotacao = personagem.Rotacao 
     projetil.IdDoModelo = 2
     projetil.Modelo = DesenhaPersonagemMatricial
@@ -501,7 +499,7 @@ def CriaInstancias():
     ang = 0
     #Personagens.append(Instancia())
     Personagens[i].Posicao = Ponto (0,0)
-    Personagens[i].Escala = Ponto (0.25, 0.25)
+    Personagens[i].Escala = Ponto (1, 1)
     Personagens[i].Rotacao = ang
     Personagens[i].IdDoModelo = 0
     Personagens[i].Modelo = DesenhaPersonagemMatricial
@@ -564,7 +562,7 @@ def init():
     CarregaModelos()
     CriaInstancias()
 
-    LarguraDoUniverso = 50
+    LarguraDoUniverso = 125
     Min = Ponto(-LarguraDoUniverso,-LarguraDoUniverso)
     Max = Ponto(LarguraDoUniverso,LarguraDoUniverso)
 
@@ -585,7 +583,7 @@ glutInit(sys.argv)
 glutInitDisplayMode(GLUT_RGBA)
 # Define o tamanho inicial da janela grafica do programa
 glutInitWindowSize(1200, 1200)
-glutInitWindowPosition(100, 100)
+glutInitWindowPosition(150, 150)
 wind = glutCreateWindow("Asteroids")
 glutDisplayFunc(display)
 glutIdleFunc(animate)
