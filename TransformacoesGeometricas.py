@@ -260,6 +260,24 @@ def DesenhaPersonagens():
         
 # ***********************************************************************************
 def display():
+    
+    # def display():
+    # global TempoInicial, TempoTotal, TempoAnterior
+    # TempoAtual = time.time()
+    # TempoTotal =  TempoAtual - TempoInicial
+    # DiferencaDeTempo = TempoAtual - TempoAnterior
+    # # Limpa a tela coma cor de fundo
+    # glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    # glMatrixMode(GL_MODELVIEW)
+    # glLoadIdentity()
+    # #glLineWidth(3)
+    # glColor3f(1,1,1) # R, G, B  [0..1]
+    # DesenhaEixos()
+    # DesenhaPersonagens()
+    # AtualizaPersonagens(DiferencaDeTempo)
+    
+    # glutSwapBuffers()
+    # TempoAnterior = TempoAtual
 
     global TempoInicial, TempoTotal, TempoAnterior
 
@@ -292,11 +310,9 @@ def atirar(personagem_index):
     projetil = Personagens[nInstancias]
     
     personagem.Centro = ((personagem.Envelope[1] + personagem.Envelope[2]) * 0.5)
-    print("centro")
-    personagem.Envelope[1].imprime()
     projetil.Escala = Ponto(0.5, 0.5)
-    projetil.Direcao = copy.deepcopy(personagem.Direcao)
-    projetil.Posicao = personagem.Centro + Ponto(2,2)
+    projetil.Direcao = copy.deepcopy(personagem.Direcao) 
+    projetil.Posicao = personagem.Centro + personagem.Direcao * 0.5
     projetil.Rotacao = personagem.Rotacao 
     projetil.IdDoModelo = 2
     projetil.Modelo = DesenhaPersonagemMatricial
@@ -548,7 +564,7 @@ def init():
     CarregaModelos()
     CriaInstancias()
 
-    LarguraDoUniverso = 20
+    LarguraDoUniverso = 50
     Min = Ponto(-LarguraDoUniverso,-LarguraDoUniverso)
     Max = Ponto(LarguraDoUniverso,LarguraDoUniverso)
 
@@ -568,7 +584,7 @@ def animate():
 glutInit(sys.argv)
 glutInitDisplayMode(GLUT_RGBA)
 # Define o tamanho inicial da janela grafica do programa
-glutInitWindowSize(800, 800)
+glutInitWindowSize(1200, 1200)
 glutInitWindowPosition(100, 100)
 wind = glutCreateWindow("Asteroids")
 glutDisplayFunc(display)
