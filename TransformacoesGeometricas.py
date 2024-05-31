@@ -208,21 +208,40 @@ def AtualizaJogo():
 
     # Feito o calculo, eh preciso testar todos os tiros e
     # demais personagens contra o jogador
-    for i in range (1, nInstancias):
-        if TestaColisao(0, i):
-            print("colidiu", i)
-            # neste exemplo, a posicao do tiro é gerada aleatoriamente apos a colisao
-            Personagens[i] = copy.deepcopy(Personagens[i+AREA_DE_BACKUP]) 
-            Personagens[i].Posicao = GeraPosicaoAleatoria()
-            Personagens[i].Posicao.imprime("Nova posicao:")
-            ang = random.randint(0, 360)
-            Personagens[i].Rotacao = ang
-            Personagens[i].Direcao = Ponto(0,1)
-            Personagens[i].Direcao.rotacionaZ(ang)
-            print ("Nova Orientacao: ", ang)
-        else:
-            pass
-            # print ("SEM Colisao")
+    
+    # Testa a colisao do personagem principal com todos os outros objetos
+    # for i in range (1, nInstancias):
+    #     if TestaColisao(0, i):
+    #         print("colidiu", i)
+    #         # neste exemplo, a posicao do tiro é gerada aleatoriamente apos a colisao
+    #         Personagens[i] = copy.deepcopy(Personagens[i+AREA_DE_BACKUP]) 
+    #         Personagens[i].Posicao = GeraPosicaoAleatoria()
+    #         Personagens[i].Posicao.imprime("Nova posicao:")
+    #         ang = random.randint(0, 360)
+    #         Personagens[i].Rotacao = ang
+    #         Personagens[i].Direcao = Ponto(0,1)
+    #         Personagens[i].Direcao.rotacionaZ(ang)
+    #         print ("Nova Orientacao: ", ang)
+            
+    # Testa colisao entre os personagens e projeteis
+    
+    for i in range (0, nInstancias - 1):
+        if Personagens[i].Projetil:
+            continue
+        for j in range (i + 1, nInstancias):
+            if TestaColisao(i, j):
+                print(f"{i} colidiu com {j}")
+                # neste exemplo, a posicao do tiro é gerada aleatoriamente apos a colisao
+                
+                Personagens[i] = copy.deepcopy(Personagens[i+AREA_DE_BACKUP]) 
+                Personagens[i].Posicao = GeraPosicaoAleatoria()
+                Personagens[i].Posicao.imprime("Nova posicao:")
+                ang = random.randint(0, 360)
+                Personagens[i].Rotacao = ang
+                Personagens[i].Direcao = Ponto(0,1)
+                Personagens[i].Direcao.rotacionaZ(ang)
+                print ("Nova Orientacao: ", ang)
+
             
     if Personagens[0].Posicao.x > LarguraDoUniverso:
         Personagens[0].Posicao.x = -LarguraDoUniverso - 10
@@ -248,9 +267,6 @@ def AtualizaPersonagens(tempoDecorrido):
 # ***********************************************************************************
 def DesenhaPersonagens():
     global PersonagemAtual, nInstancias
-    
-    # for projetil in Projeteis:
-    #     projetil.Desenha()
     
     for i in range (0, nInstancias):
         PersonagemAtual = i
@@ -316,6 +332,7 @@ def atirar(personagem_index):
     projetil.Modelo = DesenhaPersonagemMatricial
     projetil.Pivot = CalculaPivot(2)
     projetil.Velocidade = 30 + personagem.Velocidade
+    projetil.Projetil = True
     
     ## Problema: projetil esta colidindo com o personagem
     
@@ -346,36 +363,6 @@ def keyboard(*args):
         os._exit(0)
     if args[0] == b' ':
         atirar(0)
-        # global nInstancias
-        # projetil = Personagens[nInstancias]
-        
-        # Personagens[0].Centro = (Personagens[0].Envelope[1] + Personagens[0].Envelope[2]) * 0.5
-    
-        # projetil.Escala = Ponto(0.5, 0.5)
-        # projetil.Centro = (Personagens[2].Envelope[1] + Personagens[2].Envelope[2]) * 0.5
-        # projetil.Posicao = Ponto((Personagens[0].Centro.x), Personagens[0].Centro.y) 
-        # projetil.Rotacao = Personagens[0].Rotacao
-        # projetil.IdDoModelo = 2
-        # projetil.Modelo = DesenhaPersonagemMatricial
-        # projetil.Pivot = CalculaPivot(2)
-        # projetil.Direcao = copy.deepcopy(Personagens[0].Direcao)
-        # projetil.Velocidade = 30 + Personagens[0].Velocidade
-        
-        # nInstancias = nInstancias + 1
-        
-        
-            # Personagens[i].Posicao = Ponto(1000, 1000)   # move-se a 3 m/s
-            # Personagens[i].Escala = Ponto (0.5, 0.5)
-            # Personagens[i].Rotacao = ang
-            # Personagens[i].IdDoModelo = i
-            # Personagens[i].Modelo = DesenhaPersonagemMatricial
-            # Personagens[i].Pivot = CalculaPivot(Personagens[i].IdDoModelo)
-            # Personagens[i].Direcao = Ponto(0,1) # direcao do movimento para a cima
-            # Personagens[i].Direcao.rotacionaZ(ang) # direcao alterada para a direita
-            # Personagens[i].Velocidade = 0
-
-
-        
     if args[0] == ESCAPE:
         os._exit(0)
     if args[0] == b'e':
@@ -388,10 +375,10 @@ def keyboard(*args):
 # **********************************************************************
 def arrow_keys(a_keys: int, x: int, y: int):
     if a_keys == GLUT_KEY_UP:         # Se pressionar UP
-        if (Personagens[0].Velocidade + 1) < 15:
+        if (Personagens[0].Velocidade + 1) < 50:
             Personagens[0].Velocidade = Personagens[0].Velocidade + 1
     if a_keys == GLUT_KEY_DOWN:       # Se pressionar DOWN
-        if (Personagens[0].Velocidade - 1) > -15:
+        if (Personagens[0].Velocidade - 1) > -50:
             Personagens[0].Velocidade = Personagens[0].Velocidade - 1 
     if a_keys == GLUT_KEY_LEFT:       # Se pressionar LEFT
         Personagens[0].Rotacao += 5

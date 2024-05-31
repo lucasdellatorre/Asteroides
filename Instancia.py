@@ -16,7 +16,6 @@ from Ponto import *
 """ Classe Instancia """
 class Instancia:   
     def __init__(self):
-        
         self.Posicao = Ponto (0,0,0) 
         self.Escala = Ponto (1,1,1)
         self.Rotacao:float = 0.0
@@ -30,6 +29,7 @@ class Instancia:
         self.Envelope = []
         self.Direcao = Ponto(0,0,0)
         self.PosicaoDoPersonagem = Ponto(0,0,0)
+        self.Projetil = False
         for i in range(4):
             self.Envelope += [Ponto()]
         
