@@ -205,6 +205,24 @@ def AtualizaJogo():
             print("Envelope ", i)
             Personagens[i].ImprimeEnvelope("","")
     imprimeEnvelope = False
+    
+    #npc atira no personagem
+    for i in range(1, nInstancias):
+        if Personagens[i].Projetil:
+            continue
+        
+        direcao = (Personagens[0].Posicao - Personagens[i].Posicao)
+        
+        comprimento = math.sqrt( direcao.x ** 2 + direcao.y ** 2)
+        if comprimento != 0:
+            direcao.x /= comprimento
+            direcao.y /= comprimento
+       
+            
+        if random.randint(1, 200) == 5:
+            for j in range(random.randint(1, 10)):
+                atirar(i, direcao)
+
 
     # Feito o calculo, eh preciso testar todos os tiros e
     # demais personagens contra o jogador
@@ -214,24 +232,33 @@ def AtualizaJogo():
         if TestaColisao(0, i):
             print("colidiu", i)
             # neste exemplo, a posicao do tiro é gerada aleatoriamente apos a colisao
+            if Personagens[i].Projetil:
+                print("diminui a vida")
+                continue
             
             Personagens[i] = copy.deepcopy(Personagens[i+AREA_DE_BACKUP]) 
             Personagens[i].Posicao = GeraPosicaoAleatoria()
             Personagens[i].Posicao.imprime("Nova posicao:")
             ang = random.randint(0, 360)
             Personagens[i].Rotacao = ang
-            Personagens[i].Direcao = Ponto(0,1)
+            Personagens[i].Direcao = (Personagens[0].Posicao - Personagens[i].Posicao)
+            comprimento = math.sqrt( Personagens[i].Direcao.x ** 2 + Personagens[i].Direcao.y ** 2)
+            Personagens[i].Direcao.x /= comprimento
+            Personagens[i].Direcao.y /= comprimento
             Personagens[i].Direcao.rotacionaZ(ang)
             print ("Nova Orientacao: ", ang)
             
-    
     # Testa colisao entre os personagens e projeteis
     
-    for i in range (0, nInstancias - 1):
+    for i in range (1, nInstancias - 1):
         if Personagens[i].Projetil:
             continue
         for j in range (i + 1, nInstancias):
             if TestaColisao(i, j):
+                if Personagens[j].Projetil and Personagens[j].QuemAtirou == i:
+                    print("entrou aqui moco")
+                    continue
+                    
                 print(f"{i} colidiu com {j}")
                 # neste exemplo, a posicao do tiro é gerada aleatoriamente apos a colisao
                 
@@ -240,7 +267,11 @@ def AtualizaJogo():
                 Personagens[i].Posicao.imprime("Nova posicao:")
                 ang = random.randint(0, 360)
                 Personagens[i].Rotacao = ang
-                Personagens[i].Direcao = Ponto(0,1)
+                Personagens[i].Direcao = (Personagens[0].Posicao - Personagens[i].Posicao) 
+                comprimento = math.sqrt( Personagens[i].Direcao.x ** 2 + Personagens[i].Direcao.y ** 2)
+                if comprimento != 0:
+                    Personagens[i].Direcao.x /= comprimento
+                    Personagens[i].Direcao.y /= comprimento
                 Personagens[i].Direcao.rotacionaZ(ang)
                 print ("Nova Orientacao: ", ang)
             
@@ -338,11 +369,10 @@ def display():
     glutSwapBuffers()
     TempoAnterior = TempoAtual
     
-def atirar(personagem_index):
+def atirar(personagem_index, direcao):
     global nInstancias
     
     personagem = Personagens[personagem_index]
-    
     
     if personagem.Ativos >= 10:
         return
@@ -352,7 +382,7 @@ def atirar(personagem_index):
     personagem.Centro = ((personagem.Envelope[1] + personagem.Envelope[2]) * 0.5)
     personagem.Ativos += 1
     projetil.Escala = Ponto(1,1)
-    projetil.Direcao = copy.deepcopy(personagem.Direcao) 
+    projetil.Direcao = direcao
     projetil.Posicao = personagem.Centro + personagem.Direcao * 0.8
     projetil.Rotacao = personagem.Rotacao 
     projetil.IdDoModelo = 2
@@ -376,7 +406,7 @@ def keyboard(*args):
     if args[0] == b'q':
         os._exit(0)
     if args[0] == b' ':
-        atirar(0)
+        atirar(0, copy.deepcopy(Personagens[0].Direcao))
     if args[0] == ESCAPE:
         os._exit(0)
     if args[0] == b'e':
