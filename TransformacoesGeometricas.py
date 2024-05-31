@@ -210,19 +210,21 @@ def AtualizaJogo():
     # demais personagens contra o jogador
     
     # Testa a colisao do personagem principal com todos os outros objetos
-    # for i in range (1, nInstancias):
-    #     if TestaColisao(0, i):
-    #         print("colidiu", i)
-    #         # neste exemplo, a posicao do tiro é gerada aleatoriamente apos a colisao
-    #         Personagens[i] = copy.deepcopy(Personagens[i+AREA_DE_BACKUP]) 
-    #         Personagens[i].Posicao = GeraPosicaoAleatoria()
-    #         Personagens[i].Posicao.imprime("Nova posicao:")
-    #         ang = random.randint(0, 360)
-    #         Personagens[i].Rotacao = ang
-    #         Personagens[i].Direcao = Ponto(0,1)
-    #         Personagens[i].Direcao.rotacionaZ(ang)
-    #         print ("Nova Orientacao: ", ang)
+    for i in range (1, nInstancias):
+        if TestaColisao(0, i):
+            print("colidiu", i)
+            # neste exemplo, a posicao do tiro é gerada aleatoriamente apos a colisao
             
+            Personagens[i] = copy.deepcopy(Personagens[i+AREA_DE_BACKUP]) 
+            Personagens[i].Posicao = GeraPosicaoAleatoria()
+            Personagens[i].Posicao.imprime("Nova posicao:")
+            ang = random.randint(0, 360)
+            Personagens[i].Rotacao = ang
+            Personagens[i].Direcao = Ponto(0,1)
+            Personagens[i].Direcao.rotacionaZ(ang)
+            print ("Nova Orientacao: ", ang)
+            
+    
     # Testa colisao entre os personagens e projeteis
     
     for i in range (0, nInstancias - 1):
@@ -241,27 +243,46 @@ def AtualizaJogo():
                 Personagens[i].Direcao = Ponto(0,1)
                 Personagens[i].Direcao.rotacionaZ(ang)
                 print ("Nova Orientacao: ", ang)
-
             
-    if Personagens[0].Posicao.x > LarguraDoUniverso:
-        Personagens[0].Posicao.x = -LarguraDoUniverso - 10
-    if Personagens[0].Posicao.x < -LarguraDoUniverso - 10:
-        Personagens[0].Posicao.x = LarguraDoUniverso - (LarguraDoUniverso * 0.1)
-    if Personagens[0].Posicao.y < -LarguraDoUniverso:
-        Personagens[0].Posicao.y = LarguraDoUniverso
-    if Personagens[0].Posicao.y > LarguraDoUniverso:
-        Personagens[0].Posicao.y = -LarguraDoUniverso
+    ## impede que as naves saiam pra fora            
+    for i, personagem in enumerate(Personagens[0:nInstancias]):
+        if personagem.Projetil:
+            estaFora = False
+            if personagem.Posicao.x > LarguraDoUniverso:
+                estaFora = True
+            elif personagem.Posicao.x < -LarguraDoUniverso:
+                estaFora = True
+
+            # Verifica e ajusta a posição vertical
+            if personagem.Posicao.y > LarguraDoUniverso:
+                estaFora = True
+            elif personagem.Posicao.y < -LarguraDoUniverso:
+                estaFora = True
+                
+            if estaFora:
+                Personagens.pop(i)
+                Personagens.insert(AREA_DE_BACKUP, Instancia())
+                nInstancias = nInstancias - 1
+                Personagens[personagem.QuemAtirou].Ativos -= 1
+            continue
+
+        # Verifica e ajusta a posição horizontal
+        if personagem.Posicao.x > LarguraDoUniverso:
+            personagem.Posicao.x = -LarguraDoUniverso
+        elif personagem.Posicao.x < -LarguraDoUniverso:
+            personagem.Posicao.x = LarguraDoUniverso
+
+        # Verifica e ajusta a posição vertical
+        if personagem.Posicao.y > LarguraDoUniverso:
+            personagem.Posicao.y = -LarguraDoUniverso
+        elif personagem.Posicao.y < -LarguraDoUniverso:
+            personagem.Posicao.y = LarguraDoUniverso
 
 # ***********************************************************************************
 def AtualizaPersonagens(tempoDecorrido):
     global nInstancias
     for i in range (0, nInstancias):
         Personagens[i].AtualizaPosicao(tempoDecorrido) #(tempoDecorrido)
-    
-    # for index, projetil in enumerate(Projeteis):
-    #     print(index)
-    #     projetil.AtualizaPosicao(tempoDecorrido) #(tempoDecorrido)
-            
     AtualizaJogo()
 
 # ***********************************************************************************
@@ -321,9 +342,15 @@ def atirar(personagem_index):
     global nInstancias
     
     personagem = Personagens[personagem_index]
+    
+    
+    if personagem.Ativos >= 10:
+        return
+    
     projetil = Personagens[nInstancias]
     
     personagem.Centro = ((personagem.Envelope[1] + personagem.Envelope[2]) * 0.5)
+    personagem.Ativos += 1
     projetil.Escala = Ponto(1,1)
     projetil.Direcao = copy.deepcopy(personagem.Direcao) 
     projetil.Posicao = personagem.Centro + personagem.Direcao * 0.8
@@ -331,23 +358,10 @@ def atirar(personagem_index):
     projetil.IdDoModelo = 2
     projetil.Modelo = DesenhaPersonagemMatricial
     projetil.Pivot = CalculaPivot(2)
-    projetil.Velocidade = 30 + personagem.Velocidade
+    projetil.Velocidade = 80 + personagem.Velocidade
     projetil.Projetil = True
-    
-    ## Problema: projetil esta colidindo com o personagem
-    
-    # personagem.Centro = (personagem.Envelope[1] + personagem.Envelope[2]) * 0.5
-
-    # projetil.Escala = Ponto(0.5, 0.5)
-    # projetil.Centro = (Personagens[2].Envelope[1] + Personagens[2].Envelope[2]) * 0.5
-    # projetil.Posicao = Ponto((personagem.Centro.x), personagem.Centro.y) 
-    # projetil.Rotacao = personagem.Rotacao
-    # projetil.IdDoModelo = 2
-    # projetil.Modelo = DesenhaPersonagemMatricial
-    # projetil.Pivot = CalculaPivot(2)
-    # projetil.Direcao = copy.deepcopy(personagem.Direcao)
-    # projetil.Velocidade = 30 + personagem.Velocidade
-    
+    projetil.QuemAtirou = personagem_index
+    print("ativos", personagem.Ativos)
     nInstancias = nInstancias + 1
 
 # ***********************************************************************************

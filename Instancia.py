@@ -30,6 +30,8 @@ class Instancia:
         self.Direcao = Ponto(0,0,0)
         self.PosicaoDoPersonagem = Ponto(0,0,0)
         self.Projetil = False
+        self.QuemAtirou = -1
+        self.Ativos = 0
         for i in range(4):
             self.Envelope += [Ponto()]
         
