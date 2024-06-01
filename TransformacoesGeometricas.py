@@ -35,9 +35,11 @@ Min = Ponto()
 Max = Ponto()
 
 # lista de instancias do Personagens
-Personagens = [Instancia() for x in range(100)]
+Personagens = [Instancia() for x in range(200)]
+Vidas = 3
+Inimigos = 5
 
-AREA_DE_BACKUP = 50 # posicao a partir da qual sao armazenados backups dos personagens
+AREA_DE_BACKUP = 100 # posicao a partir da qual sao armazenados backups dos personagens
 
 # lista de modelos
 Modelos = []
@@ -190,7 +192,7 @@ def GeraPosicaoAleatoria():
 
 # ***********************************************************************************
 def AtualizaJogo():
-    global imprimeEnvelope, nInstancias, Personagens, LarguraDoUniverso
+    global imprimeEnvelope, nInstancias, Personagens, LarguraDoUniverso, Vidas, Inimigos
     #  Esta funcao deverá atualizar todos os elementos do jogo
     #  em funcao das novas posicoes dos personagens
     #  Entre outras coisas, deve-se:
@@ -202,27 +204,29 @@ def AtualizaJogo():
     for i in range (0, nInstancias):
         AtualizaEnvelope(i) 
         if (imprimeEnvelope): # pressione E para alterar esta flag
-            print("Envelope ", i)
+            # print("Envelope ", i)
             Personagens[i].ImprimeEnvelope("","")
     imprimeEnvelope = False
     
-    #npc atira no personagem
+    
+    if Inimigos == 0:
+        print("Voce Ganhou")
+        os._exit(0)
+    
+    # npc's atiram no personagem
     for i in range(1, nInstancias):
-        if Personagens[i].Projetil:
+        if Personagens[i].Projetil or Personagens[i].Decoracao:
             continue
         
         direcao = (Personagens[0].Posicao - Personagens[i].Posicao)
-        
-        comprimento = math.sqrt( direcao.x ** 2 + direcao.y ** 2)
+        comprimento = math.sqrt(direcao.x ** 2 + direcao.y ** 2)
         if comprimento != 0:
             direcao.x /= comprimento
             direcao.y /= comprimento
-       
             
-        if random.randint(1, 200) == 5:
+        if random.randint(1, 350) == 5:
             for j in range(random.randint(1, 10)):
                 atirar(i, direcao)
-
 
     # Feito o calculo, eh preciso testar todos os tiros e
     # demais personagens contra o jogador
@@ -230,50 +234,40 @@ def AtualizaJogo():
     # Testa a colisao do personagem principal com todos os outros objetos
     for i in range (1, nInstancias):
         if TestaColisao(0, i):
-            print("colidiu", i)
+            # print("colidiu", i)
             # neste exemplo, a posicao do tiro é gerada aleatoriamente apos a colisao
-            if Personagens[i].Projetil:
-                print("diminui a vida")
+            if Personagens[i].Decoracao:
                 continue
+            if Personagens[i].Projetil:
+                for j, p in enumerate(Personagens[0:nInstancias]):
+                    print("procurando pinto")
+                    if Personagens[j].Decoracao:
+                        Personagens.pop(j)
+                        nInstancias = nInstancias - 1
+                        Vidas -= 1
+                        Personagens.insert(AREA_DE_BACKUP, Instancia())
+                        if (Vidas - 1) == 0:
+                            print("Voce Perdeu")
+                        print("vidas", Vidas)
+                        break
             
-            Personagens[i] = copy.deepcopy(Personagens[i+AREA_DE_BACKUP]) 
-            Personagens[i].Posicao = GeraPosicaoAleatoria()
-            Personagens[i].Posicao.imprime("Nova posicao:")
-            ang = random.randint(0, 360)
-            Personagens[i].Rotacao = ang
-            Personagens[i].Direcao = (Personagens[0].Posicao - Personagens[i].Posicao)
-            comprimento = math.sqrt( Personagens[i].Direcao.x ** 2 + Personagens[i].Direcao.y ** 2)
-            Personagens[i].Direcao.x /= comprimento
-            Personagens[i].Direcao.y /= comprimento
-            Personagens[i].Direcao.rotacionaZ(ang)
-            print ("Nova Orientacao: ", ang)
+            Personagens.pop(i)
+            Personagens.insert(AREA_DE_BACKUP, Instancia())
+            nInstancias = nInstancias - 1
             
-    # Testa colisao entre os personagens e projeteis
-    
+    # # Testa colisao entre os personagens e projeteis
     for i in range (1, nInstancias - 1):
-        if Personagens[i].Projetil:
+        if Personagens[i].Projetil or Personagens[i].Decoracao:
             continue
         for j in range (i + 1, nInstancias):
             if TestaColisao(i, j):
-                if Personagens[j].Projetil and Personagens[j].QuemAtirou == i:
-                    print("entrou aqui moco")
+                if Personagens[j].Projetil and Personagens[j].QuemAtirou == i: # tiro nao pode colidir com o personagem que está atirando
                     continue
-                    
-                print(f"{i} colidiu com {j}")
-                # neste exemplo, a posicao do tiro é gerada aleatoriamente apos a colisao
                 
-                Personagens[i] = copy.deepcopy(Personagens[i+AREA_DE_BACKUP]) 
-                Personagens[i].Posicao = GeraPosicaoAleatoria()
-                Personagens[i].Posicao.imprime("Nova posicao:")
-                ang = random.randint(0, 360)
-                Personagens[i].Rotacao = ang
-                Personagens[i].Direcao = (Personagens[0].Posicao - Personagens[i].Posicao) 
-                comprimento = math.sqrt( Personagens[i].Direcao.x ** 2 + Personagens[i].Direcao.y ** 2)
-                if comprimento != 0:
-                    Personagens[i].Direcao.x /= comprimento
-                    Personagens[i].Direcao.y /= comprimento
-                Personagens[i].Direcao.rotacionaZ(ang)
-                print ("Nova Orientacao: ", ang)
+                Personagens.pop(i)
+                Personagens.insert(AREA_DE_BACKUP, Instancia())
+                nInstancias = nInstancias - 1
+                Inimigos -= 1
             
     ## impede que as naves saiam pra fora            
     for i, personagem in enumerate(Personagens[0:nInstancias]):
@@ -294,7 +288,8 @@ def AtualizaJogo():
                 Personagens.pop(i)
                 Personagens.insert(AREA_DE_BACKUP, Instancia())
                 nInstancias = nInstancias - 1
-                Personagens[personagem.QuemAtirou].Ativos -= 1
+                if (Personagens[personagem.QuemAtirou].Ativos - 1) >= 0:
+                    Personagens[personagem.QuemAtirou].Ativos -= 1
             continue
 
         # Verifica e ajusta a posição horizontal
@@ -360,8 +355,8 @@ def display():
     glLoadIdentity()
 
     #glLineWidth(3)
-    glColor3f(1,1,1) # R, G, B  [0..1]
-    DesenhaEixos()
+    # glColor3f(1,1,1) # R, G, B  [0..1]
+    # DesenhaEixos()
 
     DesenhaPersonagens()
     AtualizaPersonagens(DiferencaDeTempo)
@@ -384,14 +379,13 @@ def atirar(personagem_index, direcao):
     projetil.Escala = Ponto(1,1)
     projetil.Direcao = direcao
     projetil.Posicao = personagem.Centro + personagem.Direcao * 0.8
-    projetil.Rotacao = personagem.Rotacao 
-    projetil.IdDoModelo = 2
+    projetil.Rotacao = personagem.Rotacao
+    projetil.IdDoModelo = 1
     projetil.Modelo = DesenhaPersonagemMatricial
-    projetil.Pivot = CalculaPivot(2)
+    projetil.Pivot = CalculaPivot(1)
     projetil.Velocidade = 80 + personagem.Velocidade
     projetil.Projetil = True
     projetil.QuemAtirou = personagem_index
-    print("ativos", personagem.Ativos)
     nInstancias = nInstancias + 1
 
 # ***********************************************************************************
@@ -419,10 +413,10 @@ def keyboard(*args):
 # **********************************************************************
 def arrow_keys(a_keys: int, x: int, y: int):
     if a_keys == GLUT_KEY_UP:         # Se pressionar UP
-        if (Personagens[0].Velocidade + 1) < 50:
+        if (Personagens[0].Velocidade + 1) < 80:
             Personagens[0].Velocidade = Personagens[0].Velocidade + 1
     if a_keys == GLUT_KEY_DOWN:       # Se pressionar DOWN
-        if (Personagens[0].Velocidade - 1) > -50:
+        if (Personagens[0].Velocidade - 1) > -80:
             Personagens[0].Velocidade = Personagens[0].Velocidade - 1 
     if a_keys == GLUT_KEY_LEFT:       # Se pressionar LEFT
         Personagens[0].Rotacao += 5
@@ -465,12 +459,22 @@ def CarregaModelos():
     Modelos.append(ModeloMatricial())
     Modelos[0].leModelo("Disparador.txt")
     Modelos.append(ModeloMatricial())
-    Modelos[1].leModelo("Inimigo2.txt")
+    Modelos[1].leModelo("MatrizProjetil.txt")
     Modelos.append(ModeloMatricial())
-    Modelos[2].leModelo("MatrizProjetil.txt")
+    Modelos[2].leModelo("Inimigo1.txt")
+    Modelos.append(ModeloMatricial())
+    Modelos[3].leModelo("Inimigo2.txt")
+    Modelos.append(ModeloMatricial())
+    Modelos[4].leModelo("Inimigo3.txt")
+    Modelos.append(ModeloMatricial())
+    Modelos[5].leModelo("Inimigo4.txt")
+    Modelos.append(ModeloMatricial())
+    Modelos[6].leModelo("CoracaoCheio.txt")
+    Modelos.append(ModeloMatricial())
+    Modelos[7].leModelo("CoracaoVazio.txt")
     
     for index, modelo in enumerate(Modelos):
-        print(f'Modelo {index}')
+        # print(f'Modelo {index}')
         modelo.Imprime()
 
 def DesenhaCelula():
@@ -542,39 +546,76 @@ def CriaInstancias():
     # Salva os dados iniciais do personagem i na area de backup
     Personagens[i+AREA_DE_BACKUP] = copy.deepcopy(Personagens[i]) 
     
-    ## Inimigos
-
+    # vida
     i = i + 1
-    ang = 90
-    Personagens[i].Posicao = Ponto (13.5,0)
-    Personagens[i].Escala = Ponto (1,1)
+    ang = 0
+    #Personagens.append(Instancia())
+    Personagens[i].Posicao = Ponto (-100, 100)
+    Personagens[i].Escala = Ponto (1, 1)
     Personagens[i].Rotacao = ang
-    Personagens[i].IdDoModelo = i
+    Personagens[i].IdDoModelo = 6
     Personagens[i].Modelo = DesenhaPersonagemMatricial
     Personagens[i].Pivot = CalculaPivot(Personagens[i].IdDoModelo)
     Personagens[i].Direcao = Ponto(0,1) # direcao do movimento para a cima
     Personagens[i].Direcao.rotacionaZ(ang) # direcao alterada para a direita
-    Personagens[i].Velocidade = 1   # move-se a 3 m/s
+    Personagens[i].Velocidade = 0 # move-se a 5 m/s
+    Personagens[i].Decoracao = True
+   
+    # vida
+    i = i + 1
+    ang = 0
+    #Personagens.append(Instancia())
+    Personagens[i].Posicao = Ponto (-85, 100)
+    Personagens[i].Escala = Ponto (1, 1)
+    Personagens[i].Rotacao = ang
+    Personagens[i].IdDoModelo = 6
+    Personagens[i].Modelo = DesenhaPersonagemMatricial
+    Personagens[i].Pivot = CalculaPivot(Personagens[i].IdDoModelo)
+    Personagens[i].Direcao = Ponto(0,1) # direcao do movimento para a cima
+    Personagens[i].Direcao.rotacionaZ(ang) # direcao alterada para a direita
+    Personagens[i].Velocidade = 0 # move-se a 5 m/s
+    Personagens[i].Decoracao = True
 
     # Salva os dados iniciais do personagem i na area de backup
     Personagens[i+AREA_DE_BACKUP] = copy.deepcopy(Personagens[i]) 
     
-    ## Projetil
-    # i = i + 1
-    # ang = 0
-    # Personagens[i].Posicao = Ponto(1000, 1000)   # move-se a 3 m/s
-    # Personagens[i].Escala = Ponto (0.5, 0.5)
-    # Personagens[i].Rotacao = ang
-    # Personagens[i].IdDoModelo = i
-    # Personagens[i].Modelo = DesenhaPersonagemMatricial
-    # Personagens[i].Pivot = CalculaPivot(Personagens[i].IdDoModelo)
-    # Personagens[i].Direcao = Ponto(0,1) # direcao do movimento para a cima
-    # Personagens[i].Direcao.rotacionaZ(ang) # direcao alterada para a direita
-    # Personagens[i].Velocidade = 0
+    # vida
+    i = i + 1
+    ang = 0
+    #Personagens.append(Instancia())
+    Personagens[i].Posicao = Ponto (-70, 100)
+    Personagens[i].Escala = Ponto (1, 1)
+    Personagens[i].Rotacao = ang
+    Personagens[i].IdDoModelo = 6
+    Personagens[i].Modelo = DesenhaPersonagemMatricial
+    Personagens[i].Pivot = CalculaPivot(Personagens[i].IdDoModelo)
+    Personagens[i].Direcao = Ponto(0,1) # direcao do movimento para a cima
+    Personagens[i].Direcao.rotacionaZ(ang) # direcao alterada para a direita
+    Personagens[i].Velocidade = 0 # move-se a 5 m/s
+    Personagens[i].Decoracao = True
 
-    # # Salva os dados iniciais do personagem i na area de backup
-    # Personagens[i+AREA_DE_BACKUP] = copy.deepcopy(Personagens[i]) 
+    # Salva os dados iniciais do personagem i na area de backup
+    Personagens[i+AREA_DE_BACKUP] = copy.deepcopy(Personagens[i]) 
     
+    modelos_inimigos = [2,3,4,5]
+    
+    ## Inimigos
+    for j in range(Inimigos):
+        i = i + 1
+        ang = random.randint(0, 360)
+        Personagens[i].Posicao = Ponto(random.randint(-125, 125), random.randint(-125, 0))
+        Personagens[i].Escala = Ponto (1,1)
+        Personagens[i].Rotacao = ang
+        Personagens[i].IdDoModelo = modelos_inimigos[random.randint(0,3)]
+        Personagens[i].Modelo = DesenhaPersonagemMatricial
+        Personagens[i].Pivot = CalculaPivot(Personagens[i].IdDoModelo)
+        Personagens[i].Direcao = Ponto(0,1) # direcao do movimento para a cima
+        Personagens[i].Direcao.rotacionaZ(ang) # direcao alterada para a direita
+        Personagens[i].Velocidade = 4   # move-se a 3 m/s
+
+    #     # Salva os dados iniciais do personagem i na area de backup
+    #     Personagens[i+AREA_DE_BACKUP] = copy.deepcopy(Personagens[i]) 
+ 
     nInstancias = i+1
 
 def CalculaPivot(nroModelo):
