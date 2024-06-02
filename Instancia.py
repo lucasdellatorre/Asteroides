@@ -32,6 +32,7 @@ class Instancia:
         self.Projetil = False
         self.QuemAtirou = -1
         self.Ativos = 0
+        self.Decoracao = False
         for i in range(4):
             self.Envelope += [Ponto()]
         
